@@ -16,7 +16,7 @@ def home():
 @app.route("/login")
 def login():
 
-    # generate captcha numbers
+    # generate captcha
     num1 = random.randint(1,10)
     num2 = random.randint(1,10)
 
@@ -58,7 +58,6 @@ def do_login():
     if users[email] != password:
         return render_template("login.html", error="Incorrect password", num1=0, num2=0)
 
-    # captcha validation
     if int(captcha) != session.get("captcha"):
         return render_template("login.html", error="Captcha incorrect", num1=0, num2=0)
 
@@ -74,6 +73,32 @@ def dashboard():
         return redirect(url_for("login"))
 
     return render_template("dashboard.html")
+
+
+# prediction route
+@app.route("/predict", methods=["POST"])
+def predict():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    study_hours = float(request.form["study_hours"])
+    attendance = float(request.form["attendance"])
+    previous_score = float(request.form["previous_score"])
+
+    # prediction formula
+    prediction = (study_hours * 5 + attendance * 0.3 + previous_score * 0.5)
+
+    # limit score between 0 and 100
+    prediction = max(0, min(100, prediction))
+
+    prediction = round(prediction, 2)
+
+    return render_template(
+        "dashboard.html",
+        prediction=prediction,
+        previous_score=previous_score
+    )
 
 
 @app.route("/logout")

@@ -1,28 +1,145 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
-<title>Dashboard</title>
+<title>Student Performance AI Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
 body{
+margin:0;
 font-family:Arial;
-background:#f5f6fa;
-padding:40px;
+background:#f4f7fb;
 }
 
-.card{
+/* TOP BAR */
+
+.navbar{
+background:linear-gradient(90deg,#355C7D,#6C5B7B);
+color:white;
+padding:16px 60px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 2px 10px rgba(0,0,0,0.15);
+}
+
+.logout{
+color:white;
+text-decoration:none;
+background:#2f4e6b;
+padding:8px 16px;
+border-radius:6px;
+transition:0.3s;
+}
+
+.logout:hover{
+background:#1f364b;
+}
+
+/* MAIN CONTAINER */
+
+.container{
+padding:40px 80px;
+}
+
+/* MESSAGE */
+
+.message{
+font-size:20px;
+margin-bottom:25px;
+color:#333;
+}
+
+/* FORM */
+
+.form-box{
 background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
+padding:25px;
+border-radius:12px;
+box-shadow:0 6px 15px rgba(0,0,0,0.1);
+display:flex;
+gap:15px;
+align-items:center;
 }
 
-a{
+input{
+padding:12px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+background:#355C7D;
+color:white;
+border:none;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+background:#27465f;
+}
+
+/* RESULT */
+
+.result{
+text-align:center;
+margin-top:50px;
+}
+
+.score-card{
+background:white;
 display:inline-block;
-margin-top:20px;
+padding:30px 60px;
+border-radius:12px;
+box-shadow:0 6px 15px rgba(0,0,0,0.1);
+}
+
+.score{
+font-size:70px;
+color:#355C7D;
+font-weight:bold;
+}
+
+/* PERFORMANCE BADGE */
+
+.badge{
+margin-top:10px;
+display:inline-block;
+padding:6px 16px;
+border-radius:20px;
+font-weight:bold;
+}
+
+.excellent{background:#27ae60;color:white;}
+.good{background:#3498db;color:white;}
+.average{background:#f39c12;color:white;}
+.poor{background:#e74c3c;color:white;}
+
+/* GRAPHS */
+
+.graphs{
+display:flex;
+gap:25px;
+margin-top:50px;
+}
+
+.graph-card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 6px 15px rgba(0,0,0,0.1);
+width:33%;
+transition:0.3s;
+}
+
+.graph-card:hover{
+transform:translateY(-5px);
 }
 
 </style>
@@ -31,16 +148,141 @@ margin-top:20px;
 
 <body>
 
-<div class="card">
+<div class="navbar">
 
-<h2>Dashboard</h2>
+<h2>📊 Student Performance AI</h2>
 
-<p>Welcome! You are logged in successfully.</p>
-
-<a href="/logout">Logout</a>
+<a href="/logout" class="logout">Logout</a>
 
 </div>
 
-</body>
 
+<div class="container">
+
+<p class="message">
+Enter student data such as study hours, attendance and previous score to predict performance.
+</p>
+
+<form action="/predict" method="POST" class="form-box">
+
+<input type="number" step="0.1" name="study_hours" placeholder="Study Hours" required>
+
+<input type="number" step="0.1" name="attendance" placeholder="Attendance %" required>
+
+<input type="number" step="0.1" name="previous_score" placeholder="Previous Score" required>
+
+<button type="submit">Predict</button>
+
+</form>
+
+
+{% if prediction %}
+
+<div class="result">
+
+<h2>Predicted Score</h2>
+
+<div class="score-card">
+
+<div class="score">{{ prediction }}</div>
+
+{% if prediction >= 85 %}
+<div class="badge excellent">Excellent</div>
+
+{% elif prediction >= 70 %}
+<div class="badge good">Good</div>
+
+{% elif prediction >= 50 %}
+<div class="badge average">Average</div>
+
+{% else %}
+<div class="badge poor">Needs Improvement</div>
+{% endif %}
+
+</div>
+
+<p>AI model prediction based on study behaviour.</p>
+
+</div>
+
+
+<div class="graphs">
+
+<div class="graph-card">
+<canvas id="chart1"></canvas>
+</div>
+
+<div class="graph-card">
+<canvas id="chart2"></canvas>
+</div>
+
+<div class="graph-card">
+<canvas id="chart3"></canvas>
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+
+{% if prediction %}
+
+<script>
+
+let predicted = {{ prediction }}
+let previous = {{ previous_score }}
+
+/* Study graph */
+
+new Chart(document.getElementById("chart1"),{
+type:"bar",
+data:{
+labels:["Low Study","Medium Study","High Study","Predicted"],
+datasets:[{
+label:"Study Impact",
+data:[40,65,80,predicted],
+backgroundColor:["#95a5a6","#3498db","#2ecc71","#355C7D"]
+}]
+}
+})
+
+/* Attendance graph */
+
+new Chart(document.getElementById("chart2"),{
+type:"line",
+data:{
+labels:["Poor","Average","Good","Predicted"],
+datasets:[{
+label:"Attendance Impact",
+data:[45,60,78,predicted],
+borderColor:"#3498db",
+fill:false,
+tension:0.4
+}]
+}
+})
+
+/* Improvement graph */
+
+new Chart(document.getElementById("chart3"),{
+type:"line",
+data:{
+labels:["Previous","Predicted"],
+datasets:[{
+label:"Improvement",
+data:[previous,predicted],
+borderColor:"#27ae60",
+fill:false,
+tension:0.4
+}]
+}
+})
+
+</script>
+
+{% endif %}
+
+</body>
 </html>
