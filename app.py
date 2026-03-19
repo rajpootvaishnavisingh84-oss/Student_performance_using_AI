@@ -1,5 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import random
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# ML prediction file
+from predict import predict_grade
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -8,23 +12,24 @@ app.secret_key = "secret123"
 users = {}
 
 
+# ---------------- HOME ----------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
+# ---------------- LOGIN ----------------
 @app.route("/login")
 def login():
-
-    # generate captcha
-    num1 = random.randint(1,10)
-    num2 = random.randint(1,10)
+    num1 = random.randint(1, 10)
+    num2 = random.randint(1, 10)
 
     session["captcha"] = num1 + num2
 
     return render_template("login.html", num1=num1, num2=num2)
 
 
+# ---------------- REGISTER ----------------
 @app.route("/register")
 def register():
     return render_template("register.html")
@@ -40,11 +45,12 @@ def do_register():
     if email in users:
         return render_template("register.html", error="User already exists")
 
-    users[email] = password
+    users[email] = generate_password_hash(password)
 
     return redirect(url_for("login"))
 
 
+# ---------------- LOGIN CHECK ----------------
 @app.route("/do_login", methods=["POST"])
 def do_login():
 
@@ -55,7 +61,7 @@ def do_login():
     if email not in users:
         return render_template("login.html", error="User not registered", num1=0, num2=0)
 
-    if users[email] != password:
+    if not check_password_hash(users[email], password):
         return render_template("login.html", error="Incorrect password", num1=0, num2=0)
 
     if int(captcha) != session.get("captcha"):
@@ -66,6 +72,7 @@ def do_login():
     return redirect(url_for("dashboard"))
 
 
+# ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
 def dashboard():
 
@@ -75,37 +82,43 @@ def dashboard():
     return render_template("dashboard.html")
 
 
-# prediction route
+# ---------------- ML PREDICTION ----------------
 @app.route("/predict", methods=["POST"])
 def predict():
 
     if "user" not in session:
         return redirect(url_for("login"))
 
-    study_hours = float(request.form["study_hours"])
-    attendance = float(request.form["attendance"])
-    previous_score = float(request.form["previous_score"])
+    try:
+        study_hours = float(request.form["study_hours"])
+        attendance = float(request.form["attendance"])
+        participation = float(request.form["participation"])
+    except:
+        return "Invalid input"
 
-    # prediction formula
-    prediction = (study_hours * 5 + attendance * 0.3 + previous_score * 0.5)
+    if study_hours < 0 or attendance < 0 or participation < 0:
+        return "Invalid values"
 
-    # limit score between 0 and 100
-    prediction = max(0, min(100, prediction))
-
-    prediction = round(prediction, 2)
+    # ML prediction
+    features = [study_hours, attendance, participation]
+    prediction = predict_grade(features)
 
     return render_template(
         "dashboard.html",
         prediction=prediction,
-        previous_score=previous_score
+        study_hours=study_hours,
+        attendance=attendance,
+        participation=participation
     )
 
 
+# ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect(url_for("home"))
 
 
+# ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(debug=True)

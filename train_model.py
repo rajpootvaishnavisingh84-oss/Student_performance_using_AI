@@ -1,67 +1,45 @@
-# IMPORT LIBRARIES
-
 import pandas as pd
-import numpy as np
 import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, f1_score, classification_report
-
 
 # LOAD DATASET
-data = pd.read_csv("E:\STUDENT_PERFORMANCE\student_performance.csv")
+data = pd.read_csv("student_performance.csv")
 
-print("Dataset shape:", data.shape)
-print(data.head())
+print("Original shape:", data.shape)
 
-# DEFINE TARGET VARIABLE
-data = data.drop("student_id", axis=1)
-X = data.drop("grade", axis=1)
-y = data["grade"]
+# 🔥 TAKE SMALL SAMPLE (FAST TRAINING)
+data = data.sample(n=5000, random_state=42)  # reduce size
 
+print("Sampled shape:", data.shape)
 
-# ENCODING
+# FEATURES (CORRECT COLUMNS)
+X = data[['weekly_self_study_hours', 'attendance_percentage', 'class_participation']]
+y = data['grade']
+
+# ENCODE TARGET
 encoder = LabelEncoder()
 y = encoder.fit_transform(y)
 
-
-# TRAIN TEST SPLIT
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42
+# SPLIT
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
 )
 
-
-# ML MODEL
+# 🔥 LIGHT MODEL (FAST)
 model = RandomForestClassifier(
-    n_estimators=100,
+    n_estimators=20,   # reduced trees
+    max_depth=10,      # limit depth
     random_state=42
 )
 
-# MODEL TRANING
-
+# TRAIN
 model.fit(X_train, y_train)
 
-
-# PREDICTION
-pred = model.predict(X_test)
-
-
-# EVALUATION MATRIX
-acc = accuracy_score(y_test, pred)
-f1 = f1_score(y_test, pred, average="weighted")
-
-print("\nModel Performance")
-print("-----------------")
-print("Accuracy :", acc)
-print("F1 Score :", f1)
-
-print("\nClassification Report")
-print(classification_report(y_test, pred))
-
-
-# SAVE MODEL
+# SAVE
 joblib.dump(model, "model.pkl")
 joblib.dump(encoder, "encoder.pkl")
 
-print("\nModel and encoder saved successfully!")
+print("✅ Model trained and saved successfully!")
