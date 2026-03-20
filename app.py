@@ -40,7 +40,10 @@ def do_register():
 
     username = request.form["username"]
     email = request.form["email"]
-    password = request.form["password"]
+    password = request.form["password"] 
+    if len(password) < 6:
+     return render_template("register.html", error="Password must be at least 6 characters ")  
+
 
     if email in users:
         return render_template("register.html", error="User already exists")
