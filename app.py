@@ -96,16 +96,21 @@ def predict():
     except:
         return "Invalid input"
 
-    if study_hours < 0 or attendance < 0 or participation < 0:
-        return "Invalid values"
+    # validation
+    if not (0 <= attendance <= 100):
+        return "Attendance must be between 0 and 100"
 
     # ML prediction
     features = [study_hours, attendance, participation]
     prediction = predict_grade(features)
 
+    # 🔥 your real accuracy
+    accuracy = 0.67
+
     return render_template(
         "dashboard.html",
         prediction=prediction,
+        accuracy=accuracy,
         study_hours=study_hours,
         attendance=attendance,
         participation=participation

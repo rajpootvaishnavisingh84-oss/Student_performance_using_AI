@@ -1,6 +1,7 @@
 import joblib
 import numpy as np
 
+# load model
 model = joblib.load("model.pkl")
 encoder = joblib.load("encoder.pkl")
 

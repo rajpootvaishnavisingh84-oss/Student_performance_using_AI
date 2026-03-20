@@ -49,6 +49,7 @@ box-shadow:0 6px 15px rgba(0,0,0,0.1);
 display:flex;
 gap:15px;
 align-items:center;
+flex-wrap:wrap;
 }
 
 input{
@@ -83,6 +84,21 @@ box-shadow:0 6px 15px rgba(0,0,0,0.1);
 font-size:70px;
 color:#355C7D;
 font-weight:bold;
+}
+
+.info{
+margin-top:20px;
+font-size:16px;
+color:#444;
+}
+
+ul{
+list-style:none;
+padding:0;
+}
+
+li{
+margin:5px 0;
 }
 
 </style>
@@ -126,7 +142,36 @@ Enter student data such as study hours, attendance and class participation to pr
 
 </div>
 
-<p>Prediction powered by trained Machine Learning model.</p>
+<div class="info">
+
+<p>
+Based on your study habits, the predicted grade is 
+<strong>{{ prediction }}</strong>.
+</p>
+
+<!-- Accuracy -->
+<p><strong>Model Accuracy:</strong> {{ accuracy * 100 }}%</p>
+
+<!-- User Input -->
+<p><strong>Your Input:</strong></p>
+<ul>
+<li>Study Hours: {{ study_hours }}</li>
+<li>Attendance: {{ attendance }}</li>
+<li>Participation: {{ participation }}</li>
+</ul>
+
+<!-- Colored Feedback -->
+{% if prediction == "A" %}
+<p style="color:green; font-weight:bold;">Excellent Performance 🎉</p>
+{% elif prediction == "B" %}
+<p style="color:blue; font-weight:bold;">Good Performance 👍</p>
+{% elif prediction == "C" %}
+<p style="color:orange; font-weight:bold;">Average Performance ⚠️</p>
+{% else %}
+<p style="color:red; font-weight:bold;">Needs Improvement ❌</p>
+{% endif %}
+
+</div>
 
 </div>
 
